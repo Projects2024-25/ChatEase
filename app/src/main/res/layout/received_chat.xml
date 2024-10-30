@@ -25,12 +25,12 @@
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/receiver"
+                android:id="@+id/receivedChat"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="5sp"
                 android:textSize="15sp"
-                android:text="This is receiver message"
+                android:text="This is received message"
                 android:textColor="#363A43"
                 android:textColorHint="#7A8089"
                 android:paddingTop="5sp"
@@ -38,55 +38,7 @@
 
             </TextView>
             <TextView
-                android:id="@+id/receiverTime"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingTop="0sp"
-                android:paddingRight="5sp"
-                android:paddingBottom="5sp"
-                android:layout_marginLeft="5sp"
-                android:layout_marginRight="5sp"
-                android:textSize="10sp"
-                android:text="09:46"
-                android:gravity="right"
-                android:layout_gravity="right"
-                android:textColor="#363A43">
-
-            </TextView>
-
-        </LinearLayout>
-
-    </com.google.android.material.card.MaterialCardView>
-
-    <com.google.android.material.card.MaterialCardView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@color/white"
-        app:cardCornerRadius="10sp"
-        android:layout_gravity="right"
-        android:layout_marginRight="20sp"
-        android:layout_marginLeft="80sp">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/sender"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="5sp"
-                android:paddingTop="5sp"
-                android:paddingRight="5sp"
-                android:textSize="15sp"
-                android:text="This is sender message"
-                android:textColor="#363A43"
-                android:textColorHint="#7A8089">
-
-            </TextView>
-            <TextView
-                android:id="@+id/senderTime"
+                android:id="@+id/receivedTime"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:paddingTop="0sp"
