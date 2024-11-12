@@ -20,7 +20,7 @@ class SignInActivity : AppCompatActivity() {
     val auth = FirebaseAuth.getInstance()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-//        enableEdgeToEdge()
+        enableEdgeToEdge()
         binding = ActivitySignInBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -29,8 +29,8 @@ class SignInActivity : AppCompatActivity() {
 //            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
 //            insets
 //        }
-
-        //To be able Check if the user is coming from the SignUpActivity
+//
+////        To be able Check if the user is coming from the SignUpActivity
 //        val fromSignUp = intent.getBooleanExtra("fromSignUp",false)
 //
 //        //Checking if the user is already logged in AND is not coming from the SignUpActivity
@@ -50,12 +50,12 @@ class SignInActivity : AppCompatActivity() {
 //        }
 //
 //        //A textView of "Don't have an Account? Sign Up" using as a Button
-//        binding.textViewSignUp.setOnClickListener {
-//            Log.d("test","test")
-//            val intent = Intent(this@SignInActivity, SignUpActivity::class.java)
-//            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
-//            startActivity(intent)
-//        }
+        binding.textViewSignUp.setOnClickListener {
+            Log.d("test","test")
+            val intent = Intent(this@SignInActivity, SignUpActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+            startActivity(intent)
+        }
    }
 //
 //
@@ -87,7 +87,7 @@ class SignInActivity : AppCompatActivity() {
 //            binding.editLayoutPassword.error = "Password should contain atleast 6 letters"
 //        }
 //        return true
-//    }
+    }
 //
 //    private fun isLoading(bool: Boolean) {
 //        //This is a Rounded progressBar
@@ -115,4 +115,4 @@ class SignInActivity : AppCompatActivity() {
 //                }
 //            }
 //    }
-}
+//}
