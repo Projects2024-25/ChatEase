@@ -38,6 +38,10 @@ class GroupProfileActivity : AppCompatActivity() {
     private lateinit var adapter: GroupParticipantsAdapter
     private var groupID: String? = null
     private val delayHandler = Handler(Looper.getMainLooper())
+    private var groupIcon: String = ""
+    private var groupName: String = ""
+    private var groupDesc: String = ""
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityGroupProfileBinding.inflate(layoutInflater)
@@ -86,19 +90,21 @@ class GroupProfileActivity : AppCompatActivity() {
             }
         }
     }
+
     private var menuVisibilityStatus = false
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
-        Log.w("menu_visible 0",menu?.findItem(R.id.settingsIcon)?.isVisible.toString() + " " + menuVisibilityStatus.toString())
+        Log.w("menu_visible 0", menu?.findItem(R.id.settingsIcon)?.isVisible.toString() + " " + menuVisibilityStatus.toString())
         menu?.findItem(R.id.settingsIcon)?.isVisible = menuVisibilityStatus
-        Log.w("menu_visible 2",menu?.findItem(R.id.settingsIcon)?.isVisible.toString())
+        Log.w("menu_visible 2", menu?.findItem(R.id.settingsIcon)?.isVisible.toString())
         return super.onPrepareOptionsMenu(menu)
     }
 
     private fun menuVisibility(boolean: Boolean) {
-        Log.w("menu_visible",boolean.toString())
+        Log.w("menu_visible", boolean.toString())
         menuVisibilityStatus = boolean
         invalidateOptionsMenu()
     }
+
     private fun addParticipants(currentUserID: String) {
         if (participantList.any { participant -> participant.userID == currentUserID && participant.role != "member" }) {
             val participantStringArrayList = participantList.map { it.userID }
@@ -120,6 +126,8 @@ class GroupProfileActivity : AppCompatActivity() {
         }
     }
 
+
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == 2 && resultCode == RESULT_OK) {
@@ -130,6 +138,30 @@ class GroupProfileActivity : AppCompatActivity() {
                         updateParticipantList(currentUserID = currentUser.uid)
                     }
                 }
+            }
+        } else if (requestCode == 5 && resultCode == RESULT_OK) {
+            val modifiedGroupIcon = data?.getStringExtra("modifiedGroupIcon")
+            val modifiedGroupName = data?.getStringExtra("modifiedGroupName")
+            val modifiedGroupDesc = data?.getStringExtra("modifiedGroupDesc")
+
+            modifiedGroupIcon?.let { value ->
+                groupIcon = value
+                if (!isFinishing && !isDestroyed) {
+                    Glide.with(this)
+                        .load(value)
+                        .placeholder(R.drawable.vector_icon_group)
+                        .into(binding.imageViewGroupIcon)
+                }
+            }
+
+            modifiedGroupName?.let { value ->
+                groupName = value
+                binding.textViewGroupName.text = value
+            }
+
+            modifiedGroupDesc?.let { value ->
+                groupDesc = value
+                binding.textViewGroupDesc.text = value
             }
         }
     }
@@ -144,24 +176,33 @@ class GroupProfileActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.settingsIcon -> {
-                startActivity(Intent(this@GroupProfileActivity, GroupSettingsActivity::class.java))
+                val intent = Intent(this@GroupProfileActivity, GroupSettingsActivity::class.java)
+                intent.putExtra("groupID", groupID)
+                intent.putExtra("groupIcon", groupIcon)
+                intent.putExtra("groupName", groupName)
+                intent.putExtra("groupDesc", groupDesc)
+                startActivityForResult(intent, 5)
             }
 
             android.R.id.home -> {
-                onBackPressed()
+                val intent = Intent()
+                intent.putExtra("groupID", groupID)
+                intent.putExtra("modifiedGroupIcon", groupIcon)
+                intent.putExtra("modifiedGroupName", groupName)
+                setResult(RESULT_OK,intent)
+                finish()
             }
 
             else -> return super.onOptionsItemSelected(item)
         }
         return true
-
     }
 
     private fun updateGroupIcon() {
         groupID?.let {
             rtDB.getReference("groups/$groupID/metadata/groupIcon").get()
                 .addOnSuccessListener { snapshot ->
-                    val groupIcon = snapshot.value as? String ?: ""
+                    groupIcon = snapshot.value as? String ?: ""
                     if (groupIcon.isNotEmpty()) {
                         Glide.with(this)
                             .load(snapshot.value as? String ?: "")
@@ -182,6 +223,7 @@ class GroupProfileActivity : AppCompatActivity() {
             rtDB.getReference("groups/$groupID/metadata/groupName").get()
                 .addOnSuccessListener { snapshot ->
                     binding.textViewGroupName.text = snapshot.value as? String ?: ""
+                    groupName = snapshot.value as? String ?: ""
                 }
         }
     }
@@ -204,6 +246,7 @@ class GroupProfileActivity : AppCompatActivity() {
                 .addOnSuccessListener { snapshot ->
                     binding.textViewGroupDesc.text = snapshot.value as? String
                         ?: "Big talks or small talks, ChatEase handles it all."
+                    groupDesc = snapshot.value as? String ?: "Big talks or small talks, ChatEase handles it all."
                 }
         }
     }

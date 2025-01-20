@@ -71,11 +71,6 @@ class UserProfileActivity : AppCompatActivity() {
                 false
             ) // Check if user came from ChatActivity
 
-        // If user came from ChatActivity, hide the message button
-        if (userFromChatActivity) {
-            binding.messageUserButton.visibility = View.GONE // Hide the message button
-        }
-
         // Set click listener for toolbar navigation button to handle back navigation
         toolbar.setNavigationOnClickListener {
             onBackStackToChatActivity()
@@ -99,11 +94,16 @@ class UserProfileActivity : AppCompatActivity() {
                     10
                 )
                 constraintSetChange.applyTo(binding.constraintLayoutUserProfile)
+            } else {
+                binding.messageUserButton.visibility = View.VISIBLE
             }
 
         }
 
-
+// If user came from ChatActivity, hide the message button
+        if (userFromChatActivity) {
+            binding.messageUserButton.visibility = View.GONE // Hide the message button
+        }
         binding.messageUserButton.setOnClickListener {
             val intent = Intent(this@UserProfileActivity, ChatActivity::class.java)
             intent.putExtra("id", otherUserId)
@@ -169,9 +169,9 @@ class UserProfileActivity : AppCompatActivity() {
                     val userAvatar =
                         task.result.child("avatar").getValue(String::class.java) ?: "" // Get
                     val userBio =
-                        task.result.child("userBio").getValue(String::class.java)?.ifEmpty {
-                            "Big talks or small talks, ChatEase handles it all."
-                        }
+                        task.result.child("userBio").getValue(String::class.java)
+                            ?: "Big talks or small talks, ChatEase handles it all."
+
                     val userPresence =
                         task.result.child("status").getValue(String::class.java) ?: "Offline"
                     val userLastHeartBeat =
@@ -185,7 +185,6 @@ class UserProfileActivity : AppCompatActivity() {
                                 .placeholder(R.drawable.vector_default_user_avatar)
                                 .into(binding.userProfilePic)
                         }
-
                         binding.userName.text = "@$userName" // Set username text in UI
                         binding.displayName.text = displayName // Set display name text in UI
                         binding.textViewFriendRequestSender.text =

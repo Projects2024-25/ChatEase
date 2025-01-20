@@ -276,8 +276,6 @@ class SignUpActivity : AppCompatActivity() {
                         .placeholder(R.drawable.vector_default_user_avatar) // Placeholder while loading
                         .into(binding.avatar) // Set the image to avatar view
 
-                    // Hide the "Add Image" text
-                    binding.defaultImageViewIcon.visibility = View.INVISIBLE
                 }
             }
         } else if (resultCode == UCrop.RESULT_ERROR) {
@@ -309,7 +307,7 @@ class SignUpActivity : AppCompatActivity() {
             isLoading(false)
             binding.editLayoutEmail.error = "Please fill the email field"
             return false
-        } else if (!Patterns.EMAIL_ADDRESS.matcher(binding.editTextEmail.text.toString())
+        } else if (!Patterns.EMAIL_ADDRESS.matcher(binding.editTextEmail.text.toString().lowercase().trim())
                 .matches()
         ) {
             //if Email is not valid
@@ -356,13 +354,12 @@ class SignUpActivity : AppCompatActivity() {
             binding.progressBar.visibility = View.INVISIBLE
             binding.buttonSignUp.visibility = View.VISIBLE
         }
-
     }
 
     private fun signUp() {
         //Trying to Authenticate the user by creating the id
         auth.createUserWithEmailAndPassword(
-            binding.editTextEmail.text.toString().trim(),
+            binding.editTextEmail.text.toString().lowercase().trim(),
             binding.editTextPassword.text.toString().trim()
         )
             .addOnCompleteListener { authTask ->
@@ -432,7 +429,7 @@ class SignUpActivity : AppCompatActivity() {
                         val userDetails = hashMapOf(
                             "userName" to binding.editTextUserName.text.toString(),
                             "displayName" to binding.editTextDisplayName.text.toString(),
-                            "email" to binding.editTextEmail.text.toString(),
+                            "email" to binding.editTextEmail.text.toString().lowercase().trim(),
                             "avatar" to "",
                             "typing" to false,
                             "status" to "offline",
@@ -504,4 +501,3 @@ class SignUpActivity : AppCompatActivity() {
             }
     }
 }
-

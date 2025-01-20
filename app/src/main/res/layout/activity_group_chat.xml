@@ -33,8 +33,8 @@
 
                 <FrameLayout
                     android:id="@+id/frameGroupIcon"
-                    android:layout_width="@dimen/_32sdp"
-                    android:layout_height="@dimen/_32sdp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:background="@drawable/shape_group_icon"
                     app:layout_constraintBottom_toBottomOf="parent"
@@ -43,8 +43,9 @@
 
                     <com.makeramen.roundedimageview.RoundedImageView
                         android:id="@+id/groupIcon"
-                        android:layout_width="@dimen/_18sdp"
-                        android:layout_height="@dimen/_18sdp"
+                        android:layout_width="@dimen/_32sdp"
+                        android:layout_height="@dimen/_32sdp"
+                        android:padding="6dp"
                         android:layout_gravity="center"
                         android:scaleType="centerCrop"
                         android:src="@drawable/vector_icon_group"
@@ -67,12 +68,12 @@
                     android:id="@+id/textViewUserPresenceStatus"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="11dp"
+                    android:layout_marginStart="9dp"
                     android:text="Tap here for group info"
                     android:textSize="@dimen/_8ssp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/frameGroupIcon"
-                    app:layout_constraintTop_toBottomOf="@+id/textViewDisplayName"
+
                     app:layout_constraintVertical_bias="0.5" />
             </androidx.constraintlayout.widget.ConstraintLayout>
         </FrameLayout>

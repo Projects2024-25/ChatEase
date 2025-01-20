@@ -8,10 +8,10 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -25,8 +25,6 @@ import com.example.chatease.R
 import com.example.chatease.databinding.ActivitySettingAccountBinding
 import com.example.chatease.dataclass.UserDataSettings
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
@@ -73,7 +71,6 @@ class Settings_AccountActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-
         val toolbar = binding.userProfileActivityToolbar // Setting up the toolbar
         setSupportActionBar(toolbar) // Setting the toolbar as the app bar
         supportActionBar?.setDisplayHomeAsUpEnabled(true) // Enabling the back button
@@ -86,41 +83,45 @@ class Settings_AccountActivity : AppCompatActivity() {
 
         // Fetching user data from Firestore
         databaseReference = rtDB.getReference("users").child(userId)
-        valueListener = object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                if (snapshot.exists()) {
-                    // Retrieving user data from Firestore
-                    userName = snapshot.child("userName").getValue(String::class.java) ?: ""
-                    userAvatar = snapshot.child("avatar").getValue(String::class.java) ?: ""
-                    userDisplayName =
-                        snapshot.child("displayName").getValue(String::class.java) ?: ""
-                    userBio = snapshot.child("userBio").getValue(String::class.java) ?: ""
+        databaseReference.get().addOnSuccessListener { snapshot ->
+            if (snapshot.exists()) {
+                // Retrieving user data from Firestore
+                userName = snapshot.child("userName").getValue(String::class.java) ?: ""
+                userAvatar = snapshot.child("avatar").getValue(String::class.java) ?: ""
+                userDisplayName =
+                    snapshot.child("displayName").getValue(String::class.java) ?: ""
+                userBio = snapshot.child("userBio").getValue(String::class.java) ?: ""
 
-                    // Loading user avatar into ImageView using Glide
-                    if (!isFinishing && !isDestroyed) {
-                        Glide.with(this@Settings_AccountActivity)
-                            .load(userAvatar)
-                            .placeholder(R.drawable.vector_default_user_avatar) // Placeholder image while loading
-                            .into(binding.userAvatar)
+                // Loading user avatar into ImageView using Glide
 
-                    }
+                if (!isFinishing && !isDestroyed) {
+                    Glide.with(this@Settings_AccountActivity)
+                        .load(userAvatar)
+                        .placeholder(R.drawable.vector_default_user_avatar) // Placeholder image while loading
+                        .into(binding.userAvatar)
 
-                    // Setting text fields with user data
-                    binding.editTextUserName.setText(userName)
-                    binding.editTextDisplayName.setText(userDisplayName)
-                    binding.editTextUserBio.setText(userBio)
                 }
+
+                // Setting text fields with user data
+                binding.editTextUserName.setText(userName)
+                binding.editTextDisplayName.setText(userDisplayName)
+                binding.editTextUserBio.setText(userBio)
             }
-
-            override fun onCancelled(error: DatabaseError) {
-
-            }
-
         }
+//        valueListener = object : ValueEventListener {
+//            override fun onDataChange(snapshot: DataSnapshot) {
+//
+//            }
+//
+//            override fun onCancelled(error: DatabaseError) {
+//
+//            }
+//
+//        }
 
-        valueListener?.let {
-            databaseReference.addValueEventListener(it)
-        }
+//        valueListener?.let {
+//            databaseReference.addValueEventListener(it)
+//        }
 
         // Setting onClickListener for apply changes button
         binding.applyChangesButton.setOnClickListener {
@@ -133,15 +134,11 @@ class Settings_AccountActivity : AppCompatActivity() {
 
                 CoroutineScope(Dispatchers.Main).launch {
                     // Checking if any user data has changed
-                    Log.d("check db", userName)
-                    Log.d("check live", binding.editTextUserName.text.toString())
-
                     if (binding.editTextUserName.text.toString() != userName) {
                         isChanged = true
 
                         val isUnique =
                             async { isUsernameUnique(binding.editTextUserName.text.toString()) }.await()
-                        Log.d("check", isUnique.toString())
                         if (!isUnique) {
                             binding.textInputLayoutUserName.error = "Username needs to be unique"
                             binding.applyButtonProgressBar.visibility = View.INVISIBLE
@@ -199,8 +196,12 @@ class Settings_AccountActivity : AppCompatActivity() {
                             Toast.LENGTH_LONG
                         )
                             .show()
-                        binding.applyButtonProgressBar.visibility = View.INVISIBLE
                         binding.applyChangesButton.visibility = View.VISIBLE
+                        elementsClickabilityToggler(false)
+                        isEditButtonClicked = false
+                        binding.textInputLayoutUserName.error = null
+                        binding.textInputLayoutDisplayName.error = null
+                        binding.textInputLayoutUserBio.error = null
                     }
                 }
 
@@ -213,18 +214,15 @@ class Settings_AccountActivity : AppCompatActivity() {
             }
         }
 
-        // Setting onClickListener for avatar frame to choose an image
-        binding.frameUserAvatar.setOnClickListener {
-            chooseImage() // Call to choose image from gallery
-        }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        valueListener?.let {
-            databaseReference.removeEventListener(it)
-        }
-    }
+//    override fun onDestroy() {
+//        Log.e("Testing", "Checking")
+//        super.onDestroy()
+////        valueListener?.let {
+////            databaseReference.removeEventListener(it)
+////        }
+//    }
 
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -232,9 +230,74 @@ class Settings_AccountActivity : AppCompatActivity() {
         return super.onCreateOptionsMenu(menu)
     }
 
-//    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-//
-//    }
+    private var isEditButtonClicked = false
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+
+        return when (item.itemId) {
+            R.id.editInfoIcon -> {
+                if (isEditButtonClicked) {
+                    elementsClickabilityToggler(false)
+                    isEditButtonClicked = false
+                } else {
+                    elementsClickabilityToggler(true)
+                    isEditButtonClicked = true
+                }
+                true
+            }
+
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    private fun elementsClickabilityToggler(state: Boolean) {
+        val inputMethodManager = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+
+        binding.editTextDisplayName.apply {
+            isFocusable = state
+            isFocusableInTouchMode = state
+        }
+        binding.editTextUserName.apply {
+            isFocusable = state
+            isFocusableInTouchMode = state
+        }
+        binding.editTextUserBio.apply {
+            isFocusable = state
+            isFocusableInTouchMode = state
+        }
+
+        if (state) {
+            binding.editTextDisplayName.requestFocus() // Request focus programmatically
+            inputMethodManager.showSoftInput(binding.editTextDisplayName, InputMethodManager.SHOW_IMPLICIT) // Show the keyboard
+            binding.frameLayoutApplyButton.visibility = View.VISIBLE
+            binding.frameChangeAvatarIcon.visibility = View.VISIBLE
+            // Setting onClickListener for avatar frame to choose an image
+            binding.frameUserAvatar.setOnClickListener {
+                chooseImage() // Call to choose image from gallery
+            }
+        } else {
+            inputMethodManager.hideSoftInputFromWindow(binding.editTextDisplayName.windowToken, 0)
+            binding.frameUserAvatar.setOnClickListener(null)
+            binding.editTextDisplayName.clearFocus() // clears focus programmatically
+            binding.editTextUserName.clearFocus() // clears focus programmatically
+            binding.editTextUserBio.clearFocus() // clears focus programmatically
+
+            binding.frameLayoutApplyButton.visibility = View.INVISIBLE
+            binding.frameChangeAvatarIcon.visibility = View.INVISIBLE
+
+            if (!isFinishing && !isDestroyed) {
+                Glide.with(this@Settings_AccountActivity)
+                    .load(userAvatar)
+                    .placeholder(R.drawable.vector_default_user_avatar) // Placeholder image while loading
+                    .into(binding.userAvatar)
+
+            }
+
+            // Setting text fields with user data
+            binding.editTextUserName.setText(userName)
+            binding.editTextDisplayName.setText(userDisplayName)
+            binding.editTextUserBio.setText(userBio)
+        }
+    }
 
     private suspend fun isUsernameUnique(username: String): Boolean {
         return withContext(Dispatchers.IO) {
@@ -356,12 +419,14 @@ class Settings_AccountActivity : AppCompatActivity() {
                     }
 
                     compressedImageAsByteArray = compressedImage(bitmap, 80)
-
                     Glide.with(this@Settings_AccountActivity)
                         .asBitmap()
                         .load(compressedImageAsByteArray)
                         .placeholder(R.drawable.vector_default_user_avatar)
                         .into(binding.userAvatar)
+
+
+
                 }
             }
         }
@@ -439,7 +504,27 @@ class Settings_AccountActivity : AppCompatActivity() {
                 Toast.makeText(this, "Successfully Updated", Toast.LENGTH_LONG).show()
                 binding.applyButtonProgressBar.visibility = View.INVISIBLE
                 binding.applyChangesButton.visibility = View.VISIBLE
+                elementsClickabilityToggler(false)
+                isEditButtonClicked = false
                 // Update UI with new data if necessary
+                binding.textInputLayoutUserName.error = null
+                binding.textInputLayoutDisplayName.error = null
+                binding.textInputLayoutUserBio.error = null
+                userName = binding.editTextUserName.text.toString()
+                userDisplayName = binding.editTextDisplayName.text.toString()
+                userBio = binding.editTextUserBio.text.toString()
+                if (!isFinishing && !isDestroyed) {
+                    Glide.with(this@Settings_AccountActivity)
+                        .load(userAvatar)
+                        .placeholder(R.drawable.vector_default_user_avatar) // Placeholder image while loading
+                        .into(binding.userAvatar)
+
+                }
+
+                // Setting text fields with user data
+                binding.editTextUserName.setText(userName)
+                binding.editTextDisplayName.setText(userDisplayName)
+                binding.editTextUserBio.setText(userBio)
             }.addOnFailureListener { e ->
                 // Handle failure to update Firestore
                 Toast.makeText(this, "Update failed: ${e.message}", Toast.LENGTH_SHORT).show()
